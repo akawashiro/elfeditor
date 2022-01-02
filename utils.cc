@@ -428,73 +428,63 @@ std::string ShowRelocationType(int type) {
     }
 }
 
-std::string ShowPhdrType(Elf_Word type) {
-    switch (type) {
-        case PT_NULL:
-            return "PT_NULL";
-        case PT_LOAD:
-            return "PT_LOAD";
-        case PT_DYNAMIC:
-            return "PT_DYNAMIC";
-        case PT_INTERP:
-            return "PT_INTERP";
-        case PT_NOTE:
-            return "PT_NOTE";
-        case PT_SHLIB:
-            return "PT_SHLIB";
-        case PT_PHDR:
-            return "PT_PHDR";
-        case PT_TLS:
-            return "PT_TLS";
-        case PT_NUM:
-            return "PT_NUM";
-        case PT_LOOS:
-            return "PT_LOOS";
-        case PT_GNU_EH_FRAME:
-            return "PT_GNU_EH_FRAME";
-        case PT_GNU_STACK:
-            return "PT_GNU_STACK";
-        case PT_GNU_RELRO:
-            return "PT_GNU_RELRO";
-        case PT_GNU_PROPERTY:
-            return "PT_GNU_PROPERTY";
-        default: {
-            LOG(FATAL) << "Unknown type: " << HexString(type, 8);
+const std::map<Elf_Word, std::string> PhdrFlagToStr = {
+    {(1 << 0), "PF_X"}, {(1 << 1), "PF_W"}, {(1 << 2), "PF_R"}};
+
+std::vector<std::string> ShowPhdrFlags(Elf_Word p_flags) {
+    std::vector<std::string> ret;
+    for (const auto& [f, s] : PhdrFlagToStr) {
+        if (f & p_flags) {
+            ret.emplace_back(s);
+            p_flags ^= f;
         }
+    }
+    if (p_flags) {
+        ret.emplace_back(HexString(p_flags));
+    }
+    return ret;
+}
+
+Elf_Word ReadPhdrFlags(std::vector<std::string> str) {
+    Elf_Word flags;
+    static const auto StrToPhdrFlag = InvertMap(PhdrFlagToStr);
+    for (const auto& s : str) {
+        CHECK(StrToPhdrFlag.contains(s));
+        flags |= StrToPhdrFlag.at(s);
+    }
+    return flags;
+}
+
+const std::map<Elf_Word, std::string> PhdrTypeToStr = {
+    {PT_NULL, "PT_NULL"},
+    {PT_LOAD, "PT_LOAD"},
+    {PT_DYNAMIC, "PT_DYNAMIC"},
+    {PT_INTERP, "PT_INTERP"},
+    {PT_NOTE, "PT_NOTE"},
+    {PT_SHLIB, "PT_SHLIB"},
+    {PT_PHDR, "PT_PHDR"},
+    {PT_TLS, "PT_TLS"},
+    {PT_NUM, "PT_NUM"},
+    {PT_LOOS, "PT_LOOS"},
+    {PT_GNU_EH_FRAME, "PT_GNU_EH_FRAME"},
+    {PT_GNU_STACK, "PT_GNU_STACK"},
+    {PT_GNU_RELRO, "PT_GNU_RELRO"},
+    {PT_GNU_PROPERTY, "PT_GNU_PROPERTY"}};
+
+std::string ShowPhdrType(Elf_Word type) {
+    if (PhdrTypeToStr.contains(type)) {
+        return PhdrTypeToStr.at(type);
+    } else {
+        LOG(FATAL) << "Unknown type: " << HexString(type, 8);
     }
 }
 
-Elf_Word ParsePhdrType(std::string type) {
-    if (type == "PT_NULL") {
-        return PT_NULL;
-    } else if (type == "PT_LOAD") {
-        return PT_LOAD;
-    } else if (type == "PT_DYNAMIC") {
-        return PT_DYNAMIC;
-    } else if (type == "PT_INTERP") {
-        return PT_INTERP;
-    } else if (type == "PT_NOTE") {
-        return PT_NOTE;
-    } else if (type == "PT_SHLIB") {
-        return PT_SHLIB;
-    } else if (type == "PT_PHDR") {
-        return PT_PHDR;
-    } else if (type == "PT_TLS") {
-        return PT_TLS;
-    } else if (type == "PT_NUM") {
-        return PT_NUM;
-    } else if (type == "PT_LOOS") {
-        return PT_LOOS;
-    } else if (type == "PT_GNU_EH_FRAME") {
-        return PT_GNU_EH_FRAME;
-    } else if (type == "PT_GNU_STACK") {
-        return PT_GNU_STACK;
-    } else if (type == "PT_GNU_RELRO") {
-        return PT_GNU_RELRO;
-    } else if (type == "PT_GNU_PROPERTY") {
-        return PT_GNU_PROPERTY;
+Elf_Word ReadPhdrType(std::string str) {
+    static auto str_to_phdr_type = InvertMap(PhdrTypeToStr);
+    if (str_to_phdr_type.contains(str)) {
+        return str_to_phdr_type[str];
     } else {
-        LOG(FATAL) << "Unknown type: " << type;
+        LOG(FATAL) << "Unknown type: " << str;
     }
 }
 
@@ -522,6 +512,16 @@ std::string special_ver_ndx_to_str(Elf64_Versym versym) {
         LOG(FATAL) << "This versym (= " << versym << ") is not special.";
         exit(1);
     }
+}
+
+uint64_t HexUInt(std::string str) {
+    CHECK(str.starts_with("0x"));
+    CHECK(str.size() > 2);
+    uint64_t ret = 0;
+    std::stringstream ss(str.substr(2));
+    ss >> std::hex;
+    ss >> ret;
+    return ret;
 }
 
 // Copy from sysdeps/generic/unwind-pe.h in glibc

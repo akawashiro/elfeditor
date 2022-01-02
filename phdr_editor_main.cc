@@ -19,24 +19,58 @@ void print_help(std::ostream& os) {
 )" << std::endl;
 }
 
-void dump(const std::string input_elf_, std::string phdr_json_) {
+void dump(const std::string input_elf_, const std::string json_) {
     auto input_elf = ReadELF(input_elf_);
 
-    nlohmann::json phdr_json;
+    nlohmann::json json;
     for (int i = 0; i < input_elf->phdrs().size(); i++) {
         const Elf_Phdr* phdr = input_elf->phdrs()[i];
-        phdr_json[i]["p_type"] = ShowPhdrType(phdr->p_type);
-        phdr_json[i]["p_vaddr"] = HexString(phdr->p_vaddr);
-        phdr_json[i]["p_paddr"] = HexString(phdr->p_paddr);
-        phdr_json[i]["p_filesz"] = HexString(phdr->p_filesz);
-        phdr_json[i]["p_memsz"] = HexString(phdr->p_memsz);
-        phdr_json[i]["p_flags"] = HexString(phdr->p_flags);
-        phdr_json[i]["p_align"] = HexString(phdr->p_align);
+        json["phdr"][i]["p_type"] = ShowPhdrType(phdr->p_type);
+        json["phdr"][i]["p_vaddr"] = HexString(phdr->p_vaddr);
+        json["phdr"][i]["p_paddr"] = HexString(phdr->p_paddr);
+        json["phdr"][i]["p_filesz"] = HexString(phdr->p_filesz);
+        json["phdr"][i]["p_memsz"] = HexString(phdr->p_memsz);
+        json["phdr"][i]["p_flags"] = ShowPhdrFlags(phdr->p_flags);
+        json["phdr"][i]["p_align"] = HexString(phdr->p_align);
     }
 
-    std::ofstream ofs(phdr_json_);
-    std::cout << phdr_json.dump(4);
-    ofs << phdr_json.dump(4);
+    std::ofstream ofs(json_);
+    std::cout << json.dump(2);
+    ofs << json.dump(2);
+}
+
+void edit(const std::string input_elf_, const std::string output_elf_,
+          const std::string json_) {
+    auto input_elf = ReadELF(input_elf_);
+    std::ifstream ifs(json_);
+    CHECK(ifs);
+    nlohmann::json json;
+    ifs >> json;
+
+    if (json.contains("phdr")) {
+        CHECK(json["phdr"].size() == input_elf->phdrs().size());
+        for (int i = 0; i < input_elf->phdrs().size(); i++) {
+            auto phdr = input_elf->phdrs()[i];
+            auto json_phdr = json["phdr"][i];
+            phdr->p_type = ReadPhdrType(json_phdr["p_type"]);
+            phdr->p_vaddr = HexUInt(json_phdr["p_vaddr"]);
+            phdr->p_paddr = HexUInt(json_phdr["p_paddr"]);
+            phdr->p_filesz = HexUInt(json_phdr["p_filesz"]);
+            phdr->p_memsz = HexUInt(json_phdr["p_memsz"]);
+
+            std::vector<std::string> flags;
+            for (const auto& f : json_phdr["p_flags"]) {
+                flags.emplace_back(f.get<std::string>());
+            }
+            phdr->p_flags = ReadPhdrFlags(flags);
+
+            phdr->p_align = HexUInt(json_phdr["p_align"]);
+        }
+    }
+
+    FILE* fp = fopen(output_elf_.c_str(), "wb");
+    WriteBuf(fp, input_elf->head(), input_elf->filesize());
+    fclose(fp);
 }
 
 int main(int argc, char* const argv[]) {
@@ -56,7 +90,7 @@ int main(int argc, char* const argv[]) {
     bool is_edit = false;
     std::string input_elf;
     std::string output_elf;
-    std::string phdr_json;
+    std::string json;
 
     int opt;
     while ((opt = getopt_long(argc, argv, "hd:e:i:o:j:", long_options,
@@ -81,7 +115,7 @@ int main(int argc, char* const argv[]) {
                 output_elf = optarg;
                 break;
             case 'j':
-                phdr_json = optarg;
+                json = optarg;
                 break;
         }
     }
@@ -90,10 +124,13 @@ int main(int argc, char* const argv[]) {
 
     if (is_dump) {
         CHECK(!input_elf.empty());
-        CHECK(!phdr_json.empty());
-        dump(input_elf, phdr_json);
+        CHECK(!json.empty());
+        dump(input_elf, json);
     } else {
-        ;
+        CHECK(!input_elf.empty());
+        CHECK(!output_elf.empty());
+        CHECK(!json.empty());
+        edit(input_elf, output_elf, json);
     }
     return 0;
 }

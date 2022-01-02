@@ -186,10 +186,22 @@ std::string ShowStdMap(std::map<T, U> ma) {
     return ss.str();
 }
 
+template <class T, class U>
+std::map<T, U> InvertMap(std::map<U, T> ma) {
+    std::map<T, U> inv;
+    for (const auto& [u, t] : ma) {
+        inv[t] = u;
+    }
+    return inv;
+}
+
 std::string ShowDynamicEntryType(int type);
 std::string ShowRelocationType(int type);
 std::string ShowDW_EH_PE(uint8_t type);
 std::string ShowPhdrType(Elf_Word);
+Elf_Word ReadPhdrType(std::string str);
+std::vector<std::string> ShowPhdrFlags(Elf_Word p_flags);
+Elf_Word ReadPhdrFlags(std::vector<std::string> str);
 std::ostream& operator<<(std::ostream& os, const Syminfo& s);
 std::ostream& operator<<(std::ostream& os, const Elf_Rel& s);
 
@@ -258,6 +270,8 @@ inline std::string HexString(T num, int length = -1) {
        << std::hex << +num;
     return ss.str();
 }
+
+uint64_t HexUInt(std::string str);
 
 const char* read_uleb128(const char* p, uint32_t* val);
 const char* read_sleb128(const char* p, int32_t* val);
