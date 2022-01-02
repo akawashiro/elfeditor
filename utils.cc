@@ -446,7 +446,7 @@ std::vector<std::string> ShowPhdrFlags(Elf_Word p_flags) {
 }
 
 Elf_Word ReadPhdrFlags(std::vector<std::string> str) {
-    Elf_Word flags;
+    Elf_Word flags = 0;
     static const auto StrToPhdrFlag = InvertMap(PhdrFlagToStr);
     for (const auto& s : str) {
         CHECK(StrToPhdrFlag.contains(s));

@@ -186,6 +186,17 @@ std::string ShowStdMap(std::map<T, U> ma) {
     return ss.str();
 }
 
+template <class T>
+std::string ShowVector(std::vector<T> v) {
+    std::stringstream ss;
+    ss << "[";
+    for (const auto& d : v) {
+        ss << d << ", ";
+    }
+    ss << "]";
+    return ss.str();
+}
+
 template <class T, class U>
 std::map<T, U> InvertMap(std::map<U, T> ma) {
     std::map<T, U> inv;
