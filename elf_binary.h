@@ -35,6 +35,7 @@ class ELFBinary {
     const std::string& filename() const { return filename_; }
 
     const Elf_Ehdr* ehdr() const { return ehdr_; }
+    Elf_Ehdr* ehdr_mut() const { return ehdr_; }
     const std::vector<Elf_Phdr*> phdrs() const { return phdrs_; }
     std::vector<Elf_Phdr*> phdrs_mut() const { return phdrs_; }
     const std::vector<Elf_Phdr*> loads() const { return loads_; }

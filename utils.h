@@ -213,6 +213,11 @@ std::string ShowPhdrType(Elf_Word);
 Elf_Word ReadPhdrType(std::string str);
 std::vector<std::string> ShowPhdrFlags(Elf_Word p_flags);
 Elf_Word ReadPhdrFlags(std::vector<std::string> str);
+std::string ShowEMachine(Elf_Half e_machine);
+Elf_Half ReadEMachine(std::string str);
+std::string ShowEType(Elf_Half e_type);
+Elf_Half ReadEType(std::string str);
+
 std::ostream& operator<<(std::ostream& os, const Syminfo& s);
 std::ostream& operator<<(std::ostream& os, const Elf_Rel& s);
 

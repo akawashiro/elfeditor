@@ -23,6 +23,29 @@ void dump(const std::string input_, const std::string json_) {
     auto input = ReadELF(input_);
 
     nlohmann::json json;
+
+    // ELF Header
+    {
+        const Elf_Ehdr* ehdr = input->ehdr();
+        for (int i = 0; i < EI_NIDENT; i++) {
+            json["ehdr"]["e_ident"][i] = HexString(ehdr->e_ident[i]);
+        }
+        json["ehdr"]["e_type"] = ShowEType(ehdr->e_type);
+        json["ehdr"]["e_machine"] = ShowEMachine(ehdr->e_machine);
+        json["ehdr"]["e_version"] = HexString(ehdr->e_version);
+        json["ehdr"]["e_entry"] = HexString(ehdr->e_entry);
+        json["ehdr"]["e_phoff"] = HexString(ehdr->e_phoff);
+        json["ehdr"]["e_shoff"] = HexString(ehdr->e_shoff);
+        json["ehdr"]["e_flags"] = HexString(ehdr->e_flags);
+        json["ehdr"]["e_ehsize"] = HexString(ehdr->e_ehsize);
+        json["ehdr"]["e_phentsize"] = HexString(ehdr->e_phentsize);
+        json["ehdr"]["e_phnum"] = HexString(ehdr->e_phnum);
+        json["ehdr"]["e_shentsize"] = HexString(ehdr->e_shentsize);
+        json["ehdr"]["e_shnum"] = HexString(ehdr->e_shnum);
+        json["ehdr"]["e_shstrndx"] = HexString(ehdr->e_shstrndx);
+    }
+
+    // Program Headers
     for (int i = 0; i < input->phdrs().size(); i++) {
         const Elf_Phdr* phdr = input->phdrs()[i];
         json["phdr"][i]["p_type"] = ShowPhdrType(phdr->p_type);
@@ -46,6 +69,27 @@ void apply(const std::string input_, const std::string output_,
     CHECK(ifs);
     nlohmann::json json;
     ifs >> json;
+
+    if (json.contains("ehdr")) {
+        auto ehdr = input->ehdr_mut();
+        auto json_ehdr = json["ehdr"];
+        for (int i = 0; i < EI_NIDENT; i++) {
+            ehdr->e_ident[i] = HexUInt(json_ehdr["e_ident"][i]);
+        }
+        ehdr->e_type = ReadEType(json_ehdr["e_type"]);
+        ehdr->e_machine = ReadEMachine(json_ehdr["e_machine"]);
+        ehdr->e_version = HexUInt(json_ehdr["e_version"]);
+        ehdr->e_entry = HexUInt(json_ehdr["e_entry"]);
+        ehdr->e_phoff = HexUInt(json_ehdr["e_phoff"]);
+        ehdr->e_shoff = HexUInt(json_ehdr["e_shoff"]);
+        ehdr->e_flags = HexUInt(json_ehdr["e_flags"]);
+        ehdr->e_ehsize = HexUInt(json_ehdr["e_ehsize"]);
+        ehdr->e_phentsize = HexUInt(json_ehdr["e_phentsize"]);
+        ehdr->e_phnum = HexUInt(json_ehdr["e_phnum"]);
+        ehdr->e_shentsize = HexUInt(json_ehdr["e_shentsize"]);
+        ehdr->e_shnum = HexUInt(json_ehdr["e_shnum"]);
+        ehdr->e_shstrndx = HexUInt(json_ehdr["e_shstrndx"]);
+    }
 
     if (json.contains("phdr")) {
         CHECK(json["phdr"].size() == input->phdrs().size());
