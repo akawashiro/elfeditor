@@ -50,6 +50,7 @@ ELFBinary::ELFBinary(const std::string& filename, int fd, char* head,
     }
 
     ParsePhdrs();
+    ParseShdrs();
 }
 
 ELFBinary::~ELFBinary() {
@@ -270,6 +271,14 @@ std::string ELFBinary::ShowVersion() {
         }
     }
     return ss.str();
+}
+
+void ELFBinary::ParseShdrs() {
+    for (int i = 0; i < ehdr_->e_shnum; ++i) {
+        Elf_Shdr* shdr = reinterpret_cast<Elf_Shdr*>(head_ + ehdr_->e_shoff +
+                                                     ehdr_->e_shentsize * i);
+        shdrs_.emplace_back(shdr);
+    }
 }
 
 void ELFBinary::ParsePhdrs() {

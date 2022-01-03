@@ -38,6 +38,7 @@ class ELFBinary {
     Elf_Ehdr* ehdr_mut() const { return ehdr_; }
     const std::vector<Elf_Phdr*> phdrs() const { return phdrs_; }
     std::vector<Elf_Phdr*> phdrs_mut() const { return phdrs_; }
+    const std::vector<Elf_Shdr*> shdrs() const { return shdrs_; }
     const std::vector<Elf_Phdr*> loads() const { return loads_; }
     const Elf_Phdr* tls() const { return tls_; }
     const Elf_Phdr* gnu_stack() const { return gnu_stack_; }
@@ -117,6 +118,7 @@ class ELFBinary {
 
    private:
     void ParsePhdrs();
+    void ParseShdrs();
     void ParseEHFrameHeader(size_t off, size_t size);
     void ParseDynamic(size_t off, size_t size);
     void ParseFuncArray(uintptr_t* array, uintptr_t size,
@@ -130,6 +132,7 @@ class ELFBinary {
 
     Elf_Ehdr* ehdr_{nullptr};
     std::vector<Elf_Phdr*> phdrs_;
+    std::vector<Elf_Shdr*> shdrs_;
     std::vector<Elf_Phdr*> loads_;
     Elf_Phdr* tls_{nullptr};
     Elf_Phdr* gnu_stack_{nullptr};

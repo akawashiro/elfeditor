@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(phdr_editor LANGUAGES CXX)
+project(elfeditor LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,16 +25,18 @@ add_definitions(-DC10_USE_GLOG=1)
 get_third_party(nlohmann_json)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/nlohmann_json)
 
-add_executable(phdr_editor elf_binary.cc utils.cc phdr_editor_main.cc)
-target_link_libraries(phdr_editor PRIVATE glog nlohmann_json::nlohmann_json)
+add_executable(elfeditor elf_binary.cc utils.cc elfeditor_main.cc)
+target_link_libraries(elfeditor PRIVATE glog nlohmann_json::nlohmann_json)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake
                ${CMAKE_CURRENT_BINARY_DIR})
 include(CTest)
 
-# TODO(akawashiro): Use file command
-# file(COPY tests DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-add_custom_target(copy_test ALL COMMAND "rsync" "-au" "${CMAKE_CURRENT_SOURCE_DIR}/tests" "${CMAKE_CURRENT_BINARY_DIR}")
+# TODO(akawashiro): Use file command file(COPY tests DESTINATION
+# ${CMAKE_CURRENT_BINARY_DIR})
+add_custom_target(
+  copy_test ALL COMMAND "rsync" "-au" "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+                        "${CMAKE_CURRENT_BINARY_DIR}")
 
 if(BUILD_TESTING)
   add_test(

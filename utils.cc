@@ -428,6 +428,94 @@ std::string ShowRelocationType(int type) {
     }
 }
 
+const std::map<Elf_Word, std::string> SHFToStr = {
+    {SHF_WRITE, "SHF_WRITE"},
+    {SHF_ALLOC, "SHF_ALLOC"},
+    {SHF_EXECINSTR, "SHF_EXECINSTR"},
+    {SHF_MERGE, "SHF_MERGE"},
+    {SHF_STRINGS, "SHF_STRINGS"},
+    {SHF_INFO_LINK, "SHF_INFO_LINK"},
+    {SHF_LINK_ORDER, "SHF_LINK_ORDER"},
+    {SHF_OS_NONCONFORMING, "SHF_OS_NONCONFORMING"},
+    {SHF_GROUP, "SHF_GROUP"},
+    {SHF_TLS, "SHF_TLS"},
+    {SHF_COMPRESSED, "SHF_COMPRESSED"},
+    {SHF_MASKOS, "SHF_MASKOS"},
+    {SHF_MASKPROC, "SHF_MASKPROC"},
+    {SHF_ORDERED, "SHF_ORDERED"},
+    {SHF_EXCLUDE, "SHF_EXCLUDE"}};
+
+std::vector<std::string> ShowShdrFlags(Elf_Word sh_flags) {
+    std::vector<std::string> ret;
+    for (const auto& [f, s] : SHFToStr) {
+        if (f & sh_flags) {
+            ret.emplace_back(s);
+            sh_flags ^= f;
+        }
+    }
+    if (sh_flags) {
+        ret.emplace_back(HexString(sh_flags));
+    }
+    return ret;
+}
+
+Elf_Word ReadShdrFlags(std::vector<std::string> strs) {
+    Elf_Word flags = 0;
+    static const auto StrToSHF = InvertMap(SHFToStr);
+    for (const auto& s : strs) {
+        CHECK(StrToSHF.contains(s));
+        flags |= StrToSHF.at(s);
+    }
+    return flags;
+}
+
+const std::map<Elf_Word, std::string> SHTToStr = {
+    {SHT_NULL, "SHT_NULL"},
+    {SHT_PROGBITS, "SHT_PROGBITS"},
+    {SHT_SYMTAB, "SHT_SYMTAB"},
+    {SHT_STRTAB, "SHT_STRTAB"},
+    {SHT_RELA, "SHT_RELA"},
+    {SHT_HASH, "SHT_HASH"},
+    {SHT_DYNAMIC, "SHT_DYNAMIC"},
+    {SHT_NOTE, "SHT_NOTE"},
+    {SHT_NOBITS, "SHT_NOBITS"},
+    {SHT_REL, "SHT_REL"},
+    {SHT_SHLIB, "SHT_SHLIB"},
+    {SHT_DYNSYM, "SHT_DYNSYM"},
+    {SHT_INIT_ARRAY, "SHT_INIT_ARRAY"},
+    {SHT_FINI_ARRAY, "SHT_FINI_ARRAY"},
+    {SHT_PREINIT_ARRAY, "SHT_PREINIT_ARRAY"},
+    {SHT_GROUP, "SHT_GROUP"},
+    {SHT_SYMTAB_SHNDX, "SHT_SYMTAB_SHNDX"},
+    {SHT_NUM, "SHT_NUM"},
+    {SHT_LOOS, "SHT_LOOS"},
+    {SHT_GNU_ATTRIBUTES, "SHT_GNU_ATTRIBUTES"},
+    {SHT_GNU_HASH, "SHT_GNU_HASH"},
+    {SHT_GNU_LIBLIST, "SHT_GNU_LIBLIST"},
+    {SHT_CHECKSUM, "SHT_CHECKSUM"},
+    {SHT_LOSUNW, "SHT_LOSUNW"},
+    {SHT_SUNW_move, "SHT_SUNW_move"},
+    {SHT_SUNW_COMDAT, "SHT_SUNW_COMDAT"},
+    {SHT_SUNW_syminfo, "SHT_SUNW_syminfo"},
+    {SHT_GNU_verdef, "SHT_GNU_verdef"},
+    {SHT_GNU_verneed, "SHT_GNU_verneed"},
+    {SHT_GNU_versym, "SHT_GNU_versym"}};
+
+std::string ShowSHT(Elf_Word sh_type) {
+    if (SHTToStr.contains(sh_type)) {
+        return SHTToStr.at(sh_type);
+    } else {
+        LOG(FATAL) << "Unknown type: " << HexString(sh_type);
+    }
+}
+
+Elf_Word ReadSHT(std::string str) {
+    Elf_Word sh_type = 0;
+    static const auto StrToSHT = InvertMap(SHTToStr);
+    CHECK(StrToSHT.contains(str));
+    return StrToSHT.at(str);
+}
+
 const std::map<Elf_Half, std::string> ELFTypeToStr = {
     {ET_NONE, "ET_NONE"}, {ET_REL, "ET_REL"},   {ET_EXEC, "ET_EXEC"},
     {ET_DYN, "ET_DYN"},   {ET_CORE, "ET_CORE"}, {ET_NUM, "ET_NUM"},

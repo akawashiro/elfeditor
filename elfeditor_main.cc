@@ -11,10 +11,10 @@
 
 void print_help(std::ostream& os) {
     os << R"(Usage:
-elf-editor help                             Show this message.
-elf-editor dump [INPUT] [JSON]              Dump [INPUT] to [JSON].
-elf-editor apply [INPUT] [OUTPUT] [JSON]     Apply [JSON] to [INPUT] and save to [OUTPUT].
-elf-editor edit [INPUT] [OUTPUT]            dump + apply. It launches editor automatically.
+elfeditor help                             Show this message.
+elfeditor dump [INPUT] [JSON]              Dump [INPUT] to [JSON].
+elfeditor apply [INPUT] [OUTPUT] [JSON]    Apply [JSON] to [INPUT] and save to [OUTPUT].
+elfeditor edit [INPUT] [OUTPUT]            dump + apply. It launches editor automatically.
 -e, --editor                                Editor to edit JSON in edit subcommand.
 )" << std::endl;
 }
@@ -55,6 +55,21 @@ void dump(const std::string input_, const std::string json_) {
         json["phdr"][i]["p_memsz"] = HexString(phdr->p_memsz);
         json["phdr"][i]["p_flags"] = ShowPhdrFlags(phdr->p_flags);
         json["phdr"][i]["p_align"] = HexString(phdr->p_align);
+    }
+
+    // Section Headers
+    for (int i = 0; i < input->shdrs().size(); i++) {
+        const Elf_Shdr* shdr = input->shdrs()[i];
+        json["shdr"][i]["sh_name"] = HexString(shdr->sh_name);
+        json["shdr"][i]["sh_type"] = ShowSHT(shdr->sh_type);
+        json["shdr"][i]["sh_flags"] = ShowShdrFlags(shdr->sh_flags);
+        json["shdr"][i]["sh_addr"] = HexString(shdr->sh_addr);
+        json["shdr"][i]["sh_offset"] = HexString(shdr->sh_offset);
+        json["shdr"][i]["sh_size"] = HexString(shdr->sh_size);
+        json["shdr"][i]["sh_link"] = HexString(shdr->sh_link);
+        json["shdr"][i]["sh_info"] = HexString(shdr->sh_info);
+        json["shdr"][i]["sh_addralign"] = HexString(shdr->sh_addralign);
+        json["shdr"][i]["sh_entsize"] = HexString(shdr->sh_entsize);
     }
 
     std::ofstream ofs(json_);
@@ -112,6 +127,23 @@ void apply(const std::string input_, const std::string output_,
         }
     }
 
+    if (json.contains("shdr")) {
+        CHECK(json["shdr"].size() == input->shdrs().size());
+        for (int i = 0; i < input->shdrs().size(); i++) {
+            auto shdr = input->shdrs()[i];
+            auto json_shdr = json["shdr"][i];
+            shdr->sh_name = HexUInt(json_shdr["sh_name"]);
+            shdr->sh_type = ReadSHT(json_shdr["sh_type"]);
+            shdr->sh_flags = ReadShdrFlags(json_shdr["sh_flags"]);
+            shdr->sh_addr = HexUInt(json_shdr["sh_addr"]);
+            shdr->sh_offset = HexUInt(json_shdr["sh_offset"]);
+            shdr->sh_size = HexUInt(json_shdr["sh_size"]);
+            shdr->sh_link = HexUInt(json_shdr["sh_link"]);
+            shdr->sh_addralign = HexUInt(json_shdr["sh_addralign"]);
+            shdr->sh_entsize = HexUInt(json_shdr["sh_entsize"]);
+        }
+    }
+
     FILE* fp = fopen(output_.c_str(), "wb");
     WriteBuf(fp, input->head(), input->filesize());
     fclose(fp);
@@ -123,7 +155,10 @@ void edit(const std::string input, const std::string output,
     dump(input, json);
 
     std::string cmd = editor + " " + json;
-    system(cmd.c_str());
+    int ret = system(cmd.c_str());
+    if (ret != 0) {
+        LOG(WARNING) << cmd << " returns " << ret;
+    }
 
     apply(input, output, json);
     std::filesystem::remove(json);
