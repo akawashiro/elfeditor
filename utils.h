@@ -135,6 +135,9 @@ static constexpr Elf_Versym NO_VERSION_INFO = 0xffff;
 std::vector<std::string> SplitString(const std::string& str,
                                      const std::string& sep);
 
+std::string EscapedString(const std::vector<char>& chrs);
+std::vector<char> GetChars(const std::string& str);
+
 bool HasPrefix(const std::string& str, const std::string& prefix);
 
 template <class T>

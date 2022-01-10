@@ -67,6 +67,9 @@ class ELFBinary {
     size_t filesize() const { return filesize_; }
     size_t mapped_size() const { return mapped_size_; }
 
+    std::vector<char> GetContents(uintptr_t offset, uintptr_t size) const;
+    void SetContents(uintptr_t offset, const std::vector<char> contents);
+
     const std::string& name() const { return name_; }
 
     uintptr_t init() const { return init_; }

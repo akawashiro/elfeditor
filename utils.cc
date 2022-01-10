@@ -67,6 +67,68 @@ std::vector<std::string> SplitString(const std::string& str,
     return ret;
 }
 
+std::string EscapedString(const std::vector<char>& chrs) {
+    std::string ret;
+    for (const auto c : chrs) {
+        if ((' ' <= c && c <= '[') || (']' <= c && c <= '~')) {
+            ret += c;
+        } else {
+            switch (c) {
+                case '\'':
+                    ret += "\\'";
+                    break;
+                case '\"':
+                    ret += "\\\"";
+                    break;
+                case '\?':
+                    ret += "\\?";
+                    break;
+                case '\\':
+                    ret += "\\";
+                    break;
+                case '\0':
+                    ret += "\\0";
+                    break;
+                default:
+                    LOG(FATAL) << SOLD_LOG_BITS(c);
+            }
+        }
+    }
+    return ret;
+}
+
+std::vector<char> GetChars(const std::string& str) {
+    std::vector<char> ret;
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] != '\\') {
+            ret.emplace_back(str[i]);
+        } else {
+            CHECK(i + 1 < str.size());
+            switch (str[i + 1]) {
+                case '\'':
+                    ret.emplace_back('\'');
+                    break;
+                case '"':
+                    ret.emplace_back('\"');
+                    break;
+                case '?':
+                    ret.emplace_back('\?');
+                    break;
+                case '\\':
+                    ret.emplace_back('\\');
+                    break;
+                case '0':
+                    ret.emplace_back('\0');
+                    break;
+                default:
+                    LOG(FATAL) << SOLD_LOG_BITS(str[i + 1]);
+            }
+            i++;
+        }
+    }
+    return ret;
+}
+
 bool HasPrefix(const std::string& str, const std::string& prefix) {
     ssize_t size_diff = str.size() - prefix.size();
     return size_diff >= 0 && str.substr(0, prefix.size()) == prefix;

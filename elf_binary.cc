@@ -65,6 +65,24 @@ bool ELFBinary::IsELF(const char* p) {
     return true;
 }
 
+std::vector<char> ELFBinary::GetContents(uintptr_t offset,
+                                         uintptr_t size) const {
+    std::vector<char> ret;
+    CHECK(offset + size <= filesize());
+    for (uintptr_t o = offset; o < offset + size; o++) {
+        ret.emplace_back(*(head() + o));
+    }
+    return ret;
+}
+
+void ELFBinary::SetContents(uintptr_t offset,
+                            const std::vector<char> contents) {
+    CHECK_LT(offset + contents.size(), filesize());
+    for (int i = 0; i < contents.size(); i++) {
+        *(head_mut() + i + offset) = contents[i];
+    }
+}
+
 Range ELFBinary::GetRange() const {
     Range range{std::numeric_limits<uintptr_t>::max(),
                 std::numeric_limits<uintptr_t>::min()};

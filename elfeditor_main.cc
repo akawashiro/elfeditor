@@ -15,7 +15,7 @@ elfeditor help                             Show this message.
 elfeditor dump [INPUT] [JSON]              Dump [INPUT] to [JSON].
 elfeditor apply [INPUT] [OUTPUT] [JSON]    Apply [JSON] to [INPUT] and save to [OUTPUT].
 elfeditor edit [INPUT] [OUTPUT]            dump + apply. It launches editor automatically.
--e, --editor                                Editor to edit JSON in edit subcommand.
+-e, --editor                               Editor to edit JSON in edit subcommand.
 )" << std::endl;
 }
 
@@ -53,8 +53,13 @@ void dump(const std::string input_, const std::string json_) {
         json["phdr"][i]["p_paddr"] = HexString(phdr->p_paddr);
         json["phdr"][i]["p_filesz"] = HexString(phdr->p_filesz);
         json["phdr"][i]["p_memsz"] = HexString(phdr->p_memsz);
+        json["phdr"][i]["p_offset"] = HexString(phdr->p_offset);
         json["phdr"][i]["p_flags"] = ShowPhdrFlags(phdr->p_flags);
         json["phdr"][i]["p_align"] = HexString(phdr->p_align);
+        if (ShowPhdrType(phdr->p_type) == "PT_INTERP") {
+            json["phdr"][i]["contents"] = EscapedString(
+                input->GetContents(phdr->p_offset, phdr->p_filesz));
+        }
     }
 
     // Section Headers
@@ -73,7 +78,6 @@ void dump(const std::string input_, const std::string json_) {
     }
 
     std::ofstream ofs(json_);
-    std::cout << json.dump(2);
     ofs << json.dump(2);
 }
 
@@ -116,6 +120,7 @@ void apply(const std::string input_, const std::string output_,
             phdr->p_paddr = HexUInt(json_phdr["p_paddr"]);
             phdr->p_filesz = HexUInt(json_phdr["p_filesz"]);
             phdr->p_memsz = HexUInt(json_phdr["p_memsz"]);
+            phdr->p_offset = HexUInt(json_phdr["p_offset"]);
 
             std::vector<std::string> flags;
             for (const auto& f : json_phdr["p_flags"]) {
@@ -124,6 +129,11 @@ void apply(const std::string input_, const std::string output_,
             phdr->p_flags = ReadPhdrFlags(flags);
 
             phdr->p_align = HexUInt(json_phdr["p_align"]);
+
+            if (ShowPhdrType(phdr->p_type) == "PT_INTERP") {
+                input->SetContents(HexUInt(json_phdr["p_offset"]),
+                                   GetChars(json["phdr"][i]["contents"]));
+            }
         }
     }
 
