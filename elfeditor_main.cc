@@ -14,6 +14,7 @@ void print_help(std::ostream& os) {
 elfeditor help                             Show this message.
 elfeditor dump [INPUT] [JSON]              Dump [INPUT] to [JSON].
 elfeditor apply [INPUT] [OUTPUT] [JSON]    Apply [JSON] to [INPUT] and save to [OUTPUT].
+elfeditor show [INPUT]                     Show [INPUT] in JSON format
 elfeditor edit [INPUT] [OUTPUT]            dump + apply. It launches editor automatically.
 -e, --editor                               Editor to edit JSON in edit subcommand.
 )" << std::endl;
@@ -59,6 +60,14 @@ void dump(const std::string input_, const std::string json_) {
         if (ShowPhdrType(phdr->p_type) == "PT_INTERP") {
             json["phdr"][i]["contents"] = EscapedString(
                 input->GetContents(phdr->p_offset, phdr->p_filesz));
+        } else if (ShowPhdrType(phdr->p_type) == "PT_DYNAMIC") {
+            std::cerr << SOLD_LOG_KEY(input->dyns().size());
+            for (int j = 0; j < input->dyns().size(); j++) {
+                Elf_Dyn* dyn = input->dyns()[j];
+                json["phdr"][i]["contents"][j]["d_tag"] = ShowDT(dyn->d_tag);
+                json["phdr"][i]["contents"][j]["d_un.d_val"] =
+                    HexString(dyn->d_un.d_val);
+            }
         }
     }
 
@@ -133,6 +142,8 @@ void apply(const std::string input_, const std::string output_,
             if (ShowPhdrType(phdr->p_type) == "PT_INTERP") {
                 input->SetContents(HexUInt(json_phdr["p_offset"]),
                                    GetChars(json["phdr"][i]["contents"]));
+            } else if (ShowPhdrType(phdr->p_type) == "PT_DYNAMIC") {
+                ;
             }
         }
     }
@@ -174,7 +185,20 @@ void edit(const std::string input, const std::string output,
     std::filesystem::remove(json);
 }
 
-enum Mode { Dump, Apply, Edit };
+void show(const std::string input, const std::string editor) {
+    std::string json = std::tmpnam(nullptr);
+    dump(input, json);
+
+    std::string cmd = editor + " " + json;
+    int ret = system(cmd.c_str());
+    if (ret != 0) {
+        LOG(WARNING) << cmd << " returns " << ret;
+    }
+
+    std::filesystem::remove(json);
+}
+
+enum Mode { Dump, Apply, Edit, Show };
 
 int main(int argc, char* const argv[]) {
     google::InitGoogleLogging(argv[0]);
@@ -211,6 +235,11 @@ int main(int argc, char* const argv[]) {
         output = argv[3];
         argc -= 2;
         argv += 2;
+    } else if (argc == 3 && std::string(argv[1]) == "show") {
+        mode = Mode::Show;
+        input = argv[2];
+        argc -= 1;
+        argv += 1;
     } else {
         std::cerr << "argc = " << argc << std::endl;
         print_help(std::cerr);
@@ -242,6 +271,9 @@ int main(int argc, char* const argv[]) {
             break;
         case Mode::Edit:
             edit(input, output, editor);
+            break;
+        case Mode::Show:
+            show(input, editor);
             break;
     }
     return 0;

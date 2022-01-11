@@ -38,6 +38,7 @@ class ELFBinary {
     Elf_Ehdr* ehdr_mut() const { return ehdr_; }
     const std::vector<Elf_Phdr*> phdrs() const { return phdrs_; }
     std::vector<Elf_Phdr*> phdrs_mut() const { return phdrs_; }
+    std::vector<Elf_Dyn*> dyns() const { return dyns_; }
     const std::vector<Elf_Shdr*> shdrs() const { return shdrs_; }
     const std::vector<Elf_Phdr*> loads() const { return loads_; }
     const Elf_Phdr* tls() const { return tls_; }
@@ -137,6 +138,7 @@ class ELFBinary {
     std::vector<Elf_Phdr*> phdrs_;
     std::vector<Elf_Shdr*> shdrs_;
     std::vector<Elf_Phdr*> loads_;
+    std::vector<Elf_Dyn*> dyns_;
     Elf_Phdr* tls_{nullptr};
     Elf_Phdr* gnu_stack_{nullptr};
     Elf_Phdr* gnu_relro_{nullptr};

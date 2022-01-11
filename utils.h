@@ -209,8 +209,9 @@ std::map<T, U> InvertMap(std::map<U, T> ma) {
     return inv;
 }
 
-std::string ShowDynamicEntryType(int type);
 std::string ShowRelocationType(int type);
+std::string ShowDT(Elf64_Sxword dt);
+Elf_Word ReadDT(std::string str);
 std::string ShowDW_EH_PE(uint8_t type);
 std::string ShowPhdrType(Elf_Word);
 std::string ShowSHT(Elf_Word sh_type);

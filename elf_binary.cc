@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <iostream>
 #include <numeric>
 #include <set>
 #include <sstream>
@@ -300,6 +301,7 @@ void ELFBinary::ParseShdrs() {
 }
 
 void ELFBinary::ParsePhdrs() {
+    std::cerr << "ParsePhdrs";
     for (int i = 0; i < ehdr_->e_phnum; ++i) {
         Elf_Phdr* phdr = reinterpret_cast<Elf_Phdr*>(head_ + ehdr_->e_phoff +
                                                      ehdr_->e_phentsize * i);
@@ -539,13 +541,12 @@ std::string ELFBinary::ShowEHFrame() {
 void ELFBinary::ParseDynamic(size_t off, size_t size) {
     size_t dyn_size = sizeof(Elf_Dyn);
     CHECK(size % dyn_size == 0);
-    std::vector<Elf_Dyn*> dyns;
     for (size_t i = 0; i < size / dyn_size; ++i) {
         Elf_Dyn* dyn = reinterpret_cast<Elf_Dyn*>(head_ + off + dyn_size * i);
-        dyns.push_back(dyn);
+        dyns_.push_back(dyn);
     }
 
-    for (Elf_Dyn* dyn : dyns) {
+    for (Elf_Dyn* dyn : dyns_) {
         auto get_ptr = [this, dyn]() { return GetPtr(dyn->d_un.d_ptr); };
         if (dyn->d_tag == DT_STRTAB) {
             strtab_ = get_ptr();
@@ -596,7 +597,7 @@ void ELFBinary::ParseDynamic(size_t off, size_t size) {
     ParseFuncArray(init_array_offset_, init_arraysz_, &init_array_);
     ParseFuncArray(fini_array_offset_, fini_arraysz_, &fini_array_);
 
-    for (Elf_Dyn* dyn : dyns) {
+    for (Elf_Dyn* dyn : dyns_) {
         if (dyn->d_tag == DT_NEEDED) {
             const char* needed = strtab_ + dyn->d_un.d_val;
             neededs_.push_back(needed);
