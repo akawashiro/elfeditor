@@ -336,94 +336,61 @@ Elf_Word ReadDT(std::string str) {
     return StrToDT.at(str);
 }
 
+const std::map<Elf_Word, std::string> RelocationTypeToStr = {
+    {R_X86_64_NONE, "R_X86_64_NONE"},
+    {R_X86_64_64, "R_X86_64_64"},
+    {R_X86_64_PC32, "R_X86_64_PC32"},
+    {R_X86_64_GOT32, "R_X86_64_GOT32"},
+    {R_X86_64_PLT32, "R_X86_64_PLT32"},
+    {R_X86_64_COPY, "R_X86_64_COPY"},
+    {R_X86_64_GLOB_DAT, "R_X86_64_GLOB_DAT"},
+    {R_X86_64_JUMP_SLOT, "R_X86_64_JUMP_SLOT"},
+    {R_X86_64_RELATIVE, "R_X86_64_RELATIVE"},
+    {R_X86_64_GOTPCREL, "R_X86_64_GOTPCREL"},
+    {R_X86_64_32, "R_X86_64_32"},
+    {R_X86_64_32S, "R_X86_64_32S"},
+    {R_X86_64_16, "R_X86_64_16"},
+    {R_X86_64_PC16, "R_X86_64_PC16"},
+    {R_X86_64_8, "R_X86_64_8"},
+    {R_X86_64_PC8, "R_X86_64_PC8"},
+    {R_X86_64_DTPMOD64, "R_X86_64_DTPMOD64"},
+    {R_X86_64_DTPOFF64, "R_X86_64_DTPOFF64"},
+    {R_X86_64_TPOFF64, "R_X86_64_TPOFF64"},
+    {R_X86_64_TLSGD, "R_X86_64_TLSGD"},
+    {R_X86_64_TLSLD, "R_X86_64_TLSLD"},
+    {R_X86_64_DTPOFF32, "R_X86_64_DTPOFF32"},
+    {R_X86_64_GOTTPOFF, "R_X86_64_GOTTPOFF"},
+    {R_X86_64_TPOFF32, "R_X86_64_TPOFF32"},
+    {R_X86_64_PC64, "R_X86_64_PC64"},
+    {R_X86_64_GOTOFF64, "R_X86_64_GOTOFF64"},
+    {R_X86_64_GOTPC32, "R_X86_64_GOTPC32"},
+    {R_X86_64_GOT64, "R_X86_64_GOT64"},
+    {R_X86_64_GOTPCREL64, "R_X86_64_GOTPCREL64"},
+    {R_X86_64_GOTPC64, "R_X86_64_GOTPC64"},
+    {R_X86_64_GOTPLT64, "R_X86_64_GOTPLT64"},
+    {R_X86_64_PLTOFF64, "R_X86_64_PLTOFF64"},
+    {R_X86_64_SIZE32, "R_X86_64_SIZE32"},
+    {R_X86_64_SIZE64, "R_X86_64_SIZE64"},
+    {R_X86_64_GOTPC32_TLSDESC, "R_X86_64_GOTPC32_TLSDESC"},
+    {R_X86_64_TLSDESC, "R_X86_64_TLSDESC"},
+    {R_X86_64_IRELATIVE, "R_X86_64_IRELATIVE"},
+    {R_X86_64_RELATIVE64, "R_X86_64_RELATIVE64"},
+    {R_X86_64_GOTPCRELX, "R_X86_64_GOTPCRELX"},
+    {R_X86_64_REX_GOTPCRELX, "R_X86_64_REX_GOTPCRELX"},
+    {R_X86_64_NUM, "R_X86_64_NUM"}};
+
 std::string ShowRelocationType(int type) {
-    switch (type) {
-        case R_X86_64_NONE:
-            return "R_X86_64_NONE";
-        case R_X86_64_64:
-            return "R_X86_64_64";
-        case R_X86_64_PC32:
-            return "R_X86_64_PC32";
-        case R_X86_64_GOT32:
-            return "R_X86_64_GOT32";
-        case R_X86_64_PLT32:
-            return "R_X86_64_PLT32";
-        case R_X86_64_COPY:
-            return "R_X86_64_COPY";
-        case R_X86_64_GLOB_DAT:
-            return "R_X86_64_GLOB_DAT";
-        case R_X86_64_JUMP_SLOT:
-            return "R_X86_64_JUMP_SLOT";
-        case R_X86_64_RELATIVE:
-            return "R_X86_64_RELATIVE";
-        case R_X86_64_GOTPCREL:
-            return "R_X86_64_GOTPCREL";
-        case R_X86_64_32:
-            return "R_X86_64_32";
-        case R_X86_64_32S:
-            return "R_X86_64_32S";
-        case R_X86_64_16:
-            return "R_X86_64_16";
-        case R_X86_64_PC16:
-            return "R_X86_64_PC16";
-        case R_X86_64_8:
-            return "R_X86_64_8";
-        case R_X86_64_PC8:
-            return "R_X86_64_PC8";
-        case R_X86_64_DTPMOD64:
-            return "R_X86_64_DTPMOD64";
-        case R_X86_64_DTPOFF64:
-            return "R_X86_64_DTPOFF64";
-        case R_X86_64_TPOFF64:
-            return "R_X86_64_TPOFF64";
-        case R_X86_64_TLSGD:
-            return "R_X86_64_TLSGD";
-        case R_X86_64_TLSLD:
-            return "R_X86_64_TLSLD";
-        case R_X86_64_DTPOFF32:
-            return "R_X86_64_DTPOFF32";
-        case R_X86_64_GOTTPOFF:
-            return "R_X86_64_GOTTPOFF";
-        case R_X86_64_TPOFF32:
-            return "R_X86_64_TPOFF32";
-        case R_X86_64_PC64:
-            return "R_X86_64_PC64";
-        case R_X86_64_GOTOFF64:
-            return "R_X86_64_GOTOFF64";
-        case R_X86_64_GOTPC32:
-            return "R_X86_64_GOTPC32";
-        case R_X86_64_GOT64:
-            return "R_X86_64_GOT64";
-        case R_X86_64_GOTPCREL64:
-            return "R_X86_64_GOTPCREL64";
-        case R_X86_64_GOTPC64:
-            return "R_X86_64_GOTPC64";
-        case R_X86_64_GOTPLT64:
-            return "R_X86_64_GOTPLT64";
-        case R_X86_64_PLTOFF64:
-            return "R_X86_64_PLTOFF64";
-        case R_X86_64_SIZE32:
-            return "R_X86_64_SIZE32";
-        case R_X86_64_SIZE64:
-            return "R_X86_64_SIZE64";
-        case R_X86_64_GOTPC32_TLSDESC:
-            return "R_X86_64_GOTPC32_TLSDESC";
-        case R_X86_64_TLSDESC:
-            return "R_X86_64_TLSDESC";
-        case R_X86_64_IRELATIVE:
-            return "R_X86_64_IRELATIVE";
-        case R_X86_64_RELATIVE64:
-            return "R_X86_64_RELATIVE64";
-        case R_X86_64_GOTPCRELX:
-            return "R_X86_64_GOTPCRELX";
-        case R_X86_64_REX_GOTPCRELX:
-            return "R_X86_64_REX_GOTPCRELX";
-        case R_X86_64_NUM:
-            return "R_X86_64_NUM";
-        default: {
-            return HexString(type, 4);
-        }
+    if (RelocationTypeToStr.contains(type)) {
+        return RelocationTypeToStr.at(type);
+    } else {
+        LOG(FATAL) << "Unknown type: " << HexString(type);
     }
+}
+
+Elf_Word ReadRelocationType(std::string str) {
+    static const auto StrToRelocationType = InvertMap(RelocationTypeToStr);
+    CHECK(StrToRelocationType.contains(str));
+    return StrToRelocationType.at(str);
 }
 
 const std::map<Elf_Word, std::string> SHFToStr = {

@@ -207,20 +207,31 @@ std::map<T, U> InvertMap(std::map<U, T> ma) {
     return inv;
 }
 
+// Show and Read constants
+
 std::string ShowRelocationType(int type);
+std::string ReadRelocationType(int type);
+
 std::string ShowDT(Elf64_Sxword dt);
 Elf_Word ReadDT(std::string str);
+
 std::string ShowDW_EH_PE(uint8_t type);
+
 std::string ShowPhdrType(Elf_Word);
+Elf_Word ReadPhdrType(std::string str);
+
 std::string ShowSHT(Elf_Word sh_type);
 Elf_Word ReadSHT(std::string str);
-Elf_Word ReadPhdrType(std::string str);
+
 std::vector<std::string> ShowShdrFlags(Elf_Word sh_flags);
 Elf_Word ReadShdrFlags(std::vector<std::string> strs);
+
 std::vector<std::string> ShowPhdrFlags(Elf_Word p_flags);
 Elf_Word ReadPhdrFlags(std::vector<std::string> str);
+
 std::string ShowEMachine(Elf_Half e_machine);
 Elf_Half ReadEMachine(std::string str);
+
 std::string ShowEType(Elf_Half e_type);
 Elf_Half ReadEType(std::string str);
 
