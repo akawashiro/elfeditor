@@ -61,7 +61,6 @@ void dump(const std::string input_, const std::string json_) {
             json["phdr"][i]["contents"] = EscapedString(
                 input->GetContents(phdr->p_offset, phdr->p_filesz));
         } else if (ShowPhdrType(phdr->p_type) == "PT_DYNAMIC") {
-            std::cerr << SOLD_LOG_KEY(input->dyns().size());
             for (int j = 0; j < input->dyns().size(); j++) {
                 Elf_Dyn* dyn = input->dyns()[j];
                 json["phdr"][i]["contents"][j]["d_tag"] = ShowDT(dyn->d_tag);
@@ -141,9 +140,15 @@ void apply(const std::string input_, const std::string output_,
 
             if (ShowPhdrType(phdr->p_type) == "PT_INTERP") {
                 input->SetContents(HexUInt(json_phdr["p_offset"]),
-                                   GetChars(json["phdr"][i]["contents"]));
+                                   GetChars(json_phdr["contents"]));
             } else if (ShowPhdrType(phdr->p_type) == "PT_DYNAMIC") {
-                ;
+                CHECK_EQ(json_phdr["contents"].size(), input->dyns().size());
+                for (int j = 0; j < json_phdr["contents"].size(); j++) {
+                    input->dyns()[j]->d_tag =
+                        ReadDT(json_phdr["contents"][j]["d_tag"]);
+                    input->dyns()[j]->d_un.d_val =
+                        HexUInt(json_phdr["contents"][j]["d_un.d_val"]);
+                }
             }
         }
     }
