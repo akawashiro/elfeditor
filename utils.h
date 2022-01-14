@@ -62,16 +62,14 @@
 #include <string>
 #include <vector>
 
-#define SOLD_LOG_KEY_VALUE(key, value) " " << key << "=" << value
-#define SOLD_LOG_KEY(key) SOLD_LOG_KEY_VALUE(#key, key)
-#define SOLD_LOG_64BITS(key) SOLD_LOG_KEY_VALUE(#key, HexString(key, 16))
-#define SOLD_LOG_32BITS(key) SOLD_LOG_KEY_VALUE(#key, HexString(key, 8))
-#define SOLD_LOG_16BITS(key) SOLD_LOG_KEY_VALUE(#key, HexString(key, 4))
-#define SOLD_LOG_8BITS(key) SOLD_LOG_KEY_VALUE(#key, HexString(key, 2))
-#define SOLD_LOG_BITS(key) SOLD_LOG_KEY_VALUE(#key, HexString(key))
-#define SOLD_LOG_DWEHPE(type) SOLD_LOG_KEY_VALUE(#type, ShowDW_EH_PE(type))
-#define SOLD_CHECK_EQ(a, b) \
-    CHECK(a == b) << SOLD_LOG_BITS(a) << SOLD_LOG_BITS(b)
+#define LOG_KEY_VALUE(key, value) " " << key << "=" << value
+#define LOG_KEY(key) LOG_KEY_VALUE(#key, key)
+#define LOG_64BITS(key) LOG_KEY_VALUE(#key, HexString(key, 16))
+#define LOG_32BITS(key) LOG_KEY_VALUE(#key, HexString(key, 8))
+#define LOG_16BITS(key) LOG_KEY_VALUE(#key, HexString(key, 4))
+#define LOG_8BITS(key) LOG_KEY_VALUE(#key, HexString(key, 2))
+#define LOG_BITS(key) LOG_KEY_VALUE(#key, HexString(key))
+#define LOG_DWEHPE(type) LOG_KEY_VALUE(#type, ShowDW_EH_PE(type))
 
 #define Elf_Ehdr Elf64_Ehdr
 #define Elf_Phdr Elf64_Phdr
@@ -121,7 +119,7 @@
 #define DW_EH_PE_indirect 0x80
 
 // 0xee is never used as a valid DWARF Exception Header value
-#define DW_EH_PE_SOLD_DUMMY 0xee
+#define DW_EH_PE_DUMMY 0xee
 
 // Although there is no description of VERSYM_HIDDEN in glibc, you can find it
 // in binutils source code.

@@ -90,7 +90,7 @@ std::string EscapedString(const std::vector<char>& chrs) {
                     ret += "\\0";
                     break;
                 default:
-                    LOG(FATAL) << SOLD_LOG_BITS(c);
+                    LOG(FATAL) << LOG_BITS(c);
             }
         }
     }
@@ -121,7 +121,7 @@ std::vector<char> GetChars(const std::string& str) {
                     ret.emplace_back('\0');
                     break;
                 default:
-                    LOG(FATAL) << SOLD_LOG_BITS(str[i + 1]);
+                    LOG(FATAL) << LOG_BITS(str[i + 1]);
             }
             i++;
         }
@@ -238,8 +238,8 @@ std::string ShowDW_EH_PE(uint8_t type) {
             break;
     }
 
-    if (type == DW_EH_PE_SOLD_DUMMY) {
-        ret = "DW_EH_PE_SOLD_DUMMY(0xEE)";
+    if (type == DW_EH_PE_DUMMY) {
+        ret = "DW_EH_PE_DUMMY(0xEE)";
     } else if (ret == "") {
         ret = HexString(type, 2);
     }
@@ -791,11 +791,11 @@ Elf_Word ReadPhdrType(std::string str) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Elf_Rel& r) {
-    os << "Elf_Rela{r_offset=" << SOLD_LOG_32BITS(r.r_offset)
-       << ", r_info=" << SOLD_LOG_32BITS(r.r_info)
-       << ", ELF_R_SYM(r.r_info)=" << SOLD_LOG_16BITS(ELF_R_SYM(r.r_info))
+    os << "Elf_Rela{r_offset=" << LOG_32BITS(r.r_offset)
+       << ", r_info=" << LOG_32BITS(r.r_info)
+       << ", ELF_R_SYM(r.r_info)=" << LOG_16BITS(ELF_R_SYM(r.r_info))
        << ", ELF_R_TYPE(r.r_info)=" << ShowRelocationType(ELF_R_TYPE(r.r_info))
-       << ", r_addend=" << SOLD_LOG_32BITS(r.r_addend) << "}";
+       << ", r_addend=" << LOG_32BITS(r.r_addend) << "}";
     return os;
 }
 
@@ -935,7 +935,7 @@ const char* read_encoded_value_with_base(unsigned char encoding,
                 p += 8;
                 break;
             default:
-                LOG(FATAL) << SOLD_LOG_8BITS(encoding & 0x0f);
+                LOG(FATAL) << LOG_8BITS(encoding & 0x0f);
         }
 
         if (result != 0) {
