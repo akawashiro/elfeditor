@@ -84,9 +84,6 @@ void dump(const std::string input_, const std::string json_) {
         json["shdr"][i]["sh_addralign"] = HexString(shdr->sh_addralign);
         json["shdr"][i]["sh_entsize"] = HexString(shdr->sh_entsize);
     }
-
-    std::ofstream ofs(json_);
-    ofs << json.dump(2);
 }
 
 void apply(const std::string input_, const std::string output_,
