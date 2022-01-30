@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(elfeditor LANGUAGES CXX)
+project(elfeditor LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,17 +30,15 @@ target_link_libraries(elfeditor PRIVATE glog nlohmann_json::nlohmann_json)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake
                ${CMAKE_CURRENT_BINARY_DIR})
+
 include(CTest)
+add_subdirectory(tests)
 
-# TODO(akawashiro): Use file command file(COPY tests DESTINATION
-# ${CMAKE_CURRENT_BINARY_DIR})
-add_custom_target(
-  copy_test ALL COMMAND "rsync" "-au" "${CMAKE_CURRENT_SOURCE_DIR}/tests"
-                        "${CMAKE_CURRENT_BINARY_DIR}")
-
-if(BUILD_TESTING)
-  add_test(
-    NAME bash_no_edit
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/tests/bash_no_edit.sh
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-endif()
+add_test(
+  NAME bash_no_edit
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/tests/bash_no_edit.sh
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(
+  NAME hello_no_edit
+  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/tests/hello_no_edit.sh
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
