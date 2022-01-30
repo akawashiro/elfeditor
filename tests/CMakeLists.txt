@@ -5,3 +5,4 @@ add_custom_target(
                         "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(hello hello.c)
+target_link_libraries(hello -static)

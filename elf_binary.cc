@@ -36,7 +36,7 @@ ELFBinary::ELFBinary(const std::string& filename, int fd, char* head,
       filesize_(filesize) {
     ehdr_ = reinterpret_cast<Elf_Ehdr*>(head);
 
-    CHECK_EQ(ehdr_->e_type, ET_DYN);
+    CHECK(ehdr_->e_type == ET_EXEC || ehdr_->e_type == ET_DYN);
     CHECK_EQ(ehdr_->e_ident[EI_DATA], ELFDATA2LSB);
     CHECK((ehdr_->e_machine, EM_X86_64) || (ehdr_->e_machine, EM_AARCH64));
 
